@@ -41,12 +41,11 @@ async def create_weather_request(request: WeatherRequest):
         raise HTTPException(status_code=500, detail="Please add an API_KEY")
     
     response = requests.post(
-        #historic I do not have the paid option
-        "http://api.weatherstack.com/current",
+        "http://api.weatherstack.com/historical",
         params={
             "access_key": API_KEY,
             "query": request.location,
-            #"historical_date": request.date
+            "historical_date": request.date
         }
     )
 
@@ -55,6 +54,8 @@ async def create_weather_request(request: WeatherRequest):
         raise HTTPException(status_code=response.status_code, detail="Weather API error")
     
     response_dict = response.json()
+    if response_dict.get("success") is False:
+        raise HTTPException(status_code=500,  detail="Weather API error")
     #generate a uuid
     unique_id = str(uuid.uuid4())
     #override using response keys if there are dupes

@@ -22,64 +22,91 @@ const WeatherDisplay = ({ data }: { data: string }) => {
   } catch {
     return <p>Invalid weather data format.</p>;
   }
-  const { request, location, current, date, notes } = parsed;
-  const { astro, air_quality, weather_icons, weather_descriptions } = current;
+  const { request, location, current, historical, notes } = parsed;
+  const hasHistorical = historical && Object.keys(historical).length > 0;
 
+  let weather;
+  let astro;
+  let weather_icons;
+  let weather_descriptions;
+  let date;
+
+  if (hasHistorical) {
+    const firstDate = Object.keys(historical)[0];
+    const historicalEntry = historical[firstDate];
+
+    weather = historicalEntry;
+    astro = historicalEntry.astro;
+    weather_icons = historicalEntry.weather_icons ?? historicalEntry.hourly?.[0]?.weather_icons ?? [];
+    weather_descriptions = historicalEntry.weather_descriptions ?? historicalEntry.hourly?.[0]?.weather_descriptions ?? [];
+    date = historicalEntry.date;
+  } else {
+    weather = current;
+    astro = current.astro;
+    weather_icons = current.weather_icons ?? [];
+    weather_descriptions = current.weather_descriptions ?? [];
+    date = parsed.date ?? location.localtime?.split(" ")[0];
+  }
   return (
     <div className="weather-container">
-      <h2>🌤️ Weather for {location} on {date}</h2>
+  <h2>🌤️ Weather for {location.name} on {date}</h2>
 
-      <h3>📍 Request Info</h3>
-      <ul>
-        <li>Query: {request.query}</li>
-        <li>Language: {request.language}</li>
-        <li>Units: {request.unit}</li>
-      </ul>
+  <h3>📍 Request Info</h3>
+  <ul>
+    <li>Query: {request.query}</li>
+    <li>Language: {request.language}</li>
+    <li>Units: {request.unit}</li>
+  </ul>
 
-      <h3>🌡️ Current Weather</h3>
-      <img src={weather_icons[0]} alt={weather_descriptions[0]} width="64" />
-      <ul>
-        <li>Description: {weather_descriptions[0]}</li>
-        <li>Temperature: {current.temperature}°C</li>
-        <li>Feels Like: {current.feelslike}°C</li>
-        <li>Humidity: {current.humidity}%</li>
-        <li>Wind: {current.wind_speed} km/h {current.wind_dir}</li>
-        <li>Pressure: {current.pressure} hPa</li>
-        <li>Cloud Cover: {current.cloudcover}%</li>
-        <li>UV Index: {current.uv_index}</li>
-        <li>Visibility: {current.visibility} km</li>
-        <li>Is Day: {current.is_day === "yes" ? "☀️ Day" : "🌙 Night"}</li>
-      </ul>
+  <h3>🌡️ Weather Details</h3>
+  {weather_icons[0] && (
+    <img src={weather_icons[0]} alt={weather_descriptions[0]} width="64" />
+  )}
+  <ul>
+    <li>Description: {weather_descriptions[0]}</li>
+    <li>Temperature: {weather.temperature}°C</li>
+    <li>Feels Like: {weather.feelslike}°C</li>
+    <li>Humidity: {weather.humidity}%</li>
+    <li>Wind: {weather.wind_speed} km/h {weather.wind_dir}</li>
+    <li>Pressure: {weather.pressure} hPa</li>
+    <li>Cloud Cover: {weather.cloudcover}%</li>
+    <li>UV Index: {weather.uv_index}</li>
+    <li>Visibility: {weather.visibility} km</li>
+  </ul>
 
-      <h3>🌌 Astronomy</h3>
-      <ul>
-        <li>Sunrise: {astro.sunrise}</li>
-        <li>Sunset: {astro.sunset}</li>
-        <li>Moonrise: {astro.moonrise}</li>
-        <li>Moonset: {astro.moonset}</li>
-        <li>Moon Phase: {astro.moon_phase}</li>
-        <li>Moon Illumination: {astro.moon_illumination}%</li>
-      </ul>
+  <h3>🌌 Astronomy</h3>
+  <ul>
+    <li>Sunrise: {astro.sunrise}</li>
+    <li>Sunset: {astro.sunset}</li>
+    <li>Moonrise: {astro.moonrise}</li>
+    <li>Moonset: {astro.moonset}</li>
+    <li>Moon Phase: {astro.moon_phase}</li>
+    <li>Moon Illumination: {astro.moon_illumination}%</li>
+  </ul>
 
+  {!hasHistorical && weather.air_quality && (
+    <>
       <h3>🌫️ Air Quality</h3>
       <ul>
-        <li>CO: {air_quality.co}</li>
-        <li>NO₂: {air_quality.no2}</li>
-        <li>O₃: {air_quality.o3}</li>
-        <li>SO₂: {air_quality.so2}</li>
-        <li>PM2.5: {air_quality.pm2_5}</li>
-        <li>PM10: {air_quality.pm10}</li>
-        <li>US EPA Index: {air_quality["us-epa-index"]}</li>
-        <li>UK DEFRA Index: {air_quality["gb-defra-index"]}</li>
+        <li>CO: {weather.air_quality.co}</li>
+        <li>NO₂: {weather.air_quality.no2}</li>
+        <li>O₃: {weather.air_quality.o3}</li>
+        <li>SO₂: {weather.air_quality.so2}</li>
+        <li>PM2.5: {weather.air_quality.pm2_5}</li>
+        <li>PM10: {weather.air_quality.pm10}</li>
+        <li>US EPA Index: {weather.air_quality["us-epa-index"]}</li>
+        <li>UK DEFRA Index: {weather.air_quality["gb-defra-index"]}</li>
       </ul>
+    </>
+  )}
 
-      {notes && notes.trim() !== "" && (
-        <div>
-          <h3>📝 Notes</h3>
-          <p>{notes}</p>
-        </div>
-      )}
+  {notes && notes.trim() !== "" && (
+    <div>
+      <h3>📝 Notes</h3>
+      <p>{notes}</p>
     </div>
+  )}
+</div>
   );
 };
 
