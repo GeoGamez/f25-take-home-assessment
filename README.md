@@ -1,5 +1,9 @@
 # Lynkr Technical Assessment
 
+## Canadidate Comments
+Due to not having an api key for the historic endpoint, I was unable to test this. 
+I was able to successfully run the code with current which is on the branch current.
+
 ## Overview
 
 Build a weather data system where users can submit weather requests and retrieve stored results by ID.
